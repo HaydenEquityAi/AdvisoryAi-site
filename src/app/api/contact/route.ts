@@ -41,7 +41,7 @@ function checkRateLimit(ip: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     // Get client IP for rate limiting
-    const ip = req.ip || req.headers.get("x-forwarded-for") || "unknown";
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
     
     // Check rate limit
     if (!checkRateLimit(ip)) {
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
+        { error: "Invalid input", details: error.issues },
         { status: 400 }
       );
     }
