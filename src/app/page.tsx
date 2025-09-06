@@ -1,30 +1,6 @@
-"use client";
-
-import { useState } from "react";
+import ContactForm from "@/components/ContactForm";
 
 export default function Home() {
-  const [status, setStatus] = useState<string | null>(null);
-
-  async function handleSubmit(formData: FormData) {
-    setStatus("submitting");
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.get("name"),
-          email: formData.get("email"),
-          phone: formData.get("phone"),
-          businessType: formData.get("businessType"),
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to submit");
-      setStatus("success");
-    } catch (e) {
-      setStatus("error");
-    }
-  }
-
   return (
     <div className="min-h-screen bg-white text-black">
       <header className="px-6 sm:px-10 py-6 border-b">
@@ -82,60 +58,27 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Contact */}
-        <section id="contact" className="px-6 sm:px-10 py-16 sm:py-24 border-b">
+        {/* Calendly Section */}
+        <section className="px-6 sm:px-10 py-16 sm:py-24 border-b">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">Contact</h2>
-            <form
-              className="mt-8 grid sm:grid-cols-2 gap-6"
-              action={async (formData) => {
-                await handleSubmit(formData);
-              }}
-            >
-              <div className="flex flex-col gap-2">
-                <label htmlFor="name" className="text-sm">Name</label>
-                <input id="name" name="name" required className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="email" className="text-sm">Email</label>
-                <input id="email" name="email" type="email" required className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="phone" className="text-sm">Phone</label>
-                <input id="phone" name="phone" className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="businessType" className="text-sm">Business Type</label>
-                <input id="businessType" name="businessType" className="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black" />
-              </div>
-              <div className="sm:col-span-2">
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto inline-flex items-center justify-center border px-5 py-2.5 rounded-md bg-black text-white hover:bg-white hover:text-black transition-colors"
-                  disabled={status === "submitting"}
-                >
-                  {status === "submitting" ? "Submitting..." : "Submit"}
-                </button>
-                {status === "success" && (
-                  <p className="mt-3 text-sm text-green-600">Thanks! We'll be in touch shortly.</p>
-                )}
-                {status === "error" && (
-                  <p className="mt-3 text-sm text-red-600">Something went wrong. Please try again.</p>
-                )}
-              </div>
-            </form>
-
-            {/* Calendly */}
-            <div className="mt-12">
-              <div className="aspect-[16/9] w-full border rounded-md overflow-hidden">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-8">Schedule a Call</h2>
+            <div className="w-full">
+              <div className="aspect-[16/9] w-full border rounded-md overflow-hidden bg-gray-50">
                 <iframe
                   title="Schedule with AdvisoryAi"
                   className="w-full h-full"
-                  src="https://calendly.com/your-calendly-username/intro-call?hide_event_type_details=1&hide_gdpr_banner=1"
+                  src="https://calendly.com/hayden-capitalaiadvisors?hide_event_type_details=1&hide_gdpr_banner=1&embed_domain=localhost&embed_type=Inline"
                   frameBorder="0"
                 />
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Contact */}
+        <section id="contact" className="px-6 sm:px-10 py-16 sm:py-24 border-b">
+          <div className="max-w-6xl mx-auto">
+            <ContactForm />
           </div>
         </section>
       </main>
