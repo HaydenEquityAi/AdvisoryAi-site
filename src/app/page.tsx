@@ -383,27 +383,7 @@ function ContactForm() {
 
 // Calendar Widget Component
 function CalendarWidget() {
-  const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL;
-
-  if (!calendlyUrl || calendlyUrl.includes('/app/')) {
-    return (
-      <Card className="card">
-        <CardContent className="p-6">
-          <div className="text-center space-y-4">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-              <Clock className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Calendar Unavailable</h3>
-              <p className="text-muted-foreground text-sm">
-                Please contact us directly to schedule a consultation.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/hayden-capitalaiadvisors";
 
   return (
     <Card className="card">

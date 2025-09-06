@@ -2,9 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    allowedRevalidateHeaderKeys: ['x-vercel-cache'],
-  },
   // Allow CORS for LAN IPs during development
   async headers() {
     return [
