@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "sonner";
 import { CheckCircle, Clock, TrendingUp, Zap, BarChart3, Workflow, Bot } from "lucide-react";
+import WhyAdvisoryAi from "@/components/WhyAdvisoryAi";
+import IndustrySolutions from "@/components/IndustrySolutions";
 
 export default function Home() {
   const [isDark, setIsDark] = useState(false);
@@ -48,11 +50,11 @@ export default function Home() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
                 <h1 className="h1">
-                  Automate ops. Save hours.{" "}
-                  <span className="text-gradient">Grow margin.</span>
+                  AI & Automation for Tulsa Businesses.{" "}
+                  <span className="text-gradient">Save time. Grow profit.</span>
                 </h1>
                 <p className="lead">
-                  Practical AI workflows and dashboards that plug into your existing Google stack.
+                  We help Tulsa companies cut admin hours, streamline operations, and unlock growth with practical AI workflows tailored to your business.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild size="lg" className="btn-primary">
@@ -97,6 +99,12 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Why AdvisoryAi */}
+        <WhyAdvisoryAi />
+
+        {/* Industry Solutions */}
+        <IndustrySolutions />
 
         {/* Services */}
         <section id="services" className="section">
