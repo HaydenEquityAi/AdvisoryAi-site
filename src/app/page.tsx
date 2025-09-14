@@ -123,7 +123,7 @@ export default function Home() {
                 { 
                   icon: Workflow, 
                   title: "Workflow Optimization", 
-                  desc: "Design efficient processes across tools like Slack, Notion, HubSpot, and more." 
+                  desc: "Design efficient processes across tools like Microsoft, Google, Slack, HubSpot, and more." 
                 },
                 { 
                   icon: BarChart3, 
@@ -160,8 +160,8 @@ export default function Home() {
               {[
                 { 
                   icon: CheckCircle, 
-                  title: "Google-first stack", 
-                  desc: "We build on tools you already use and trust" 
+                  title: "Built on tools you already use", 
+                  desc: "We build on platforms your team already knows and trusts" 
                 },
                 { 
                   icon: CheckCircle, 
