@@ -180,7 +180,7 @@ export default function ContactForm({ className = "" }: ContactFormProps) {
         {status === "success" && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-md">
             <p className="text-green-800">
-              Thank you! Your message has been sent. We'll get back to you within 24 hours.
+              Thank you! Your message has been sent. We&apos;ll get back to you within 24 hours.
             </p>
           </div>
         )}
