@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendContactConfirmation } from '@/lib/services/resend';
-import { triggerContactWorkflow, triggerContactWithNewsletterWorkflow } from '@/lib/services/n8n';
+import { sendNewsletterWelcome } from '@/lib/services/resend';
+import { triggerNewsletterWorkflow } from '@/lib/services/n8n';
 
 interface ServiceResult {
   success: boolean;
@@ -11,14 +11,14 @@ interface ServiceResult {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, business, message, subscribeNewsletter } = body;
+    const { email, name, source } = body;
 
     // Validate required fields
-    if (!name || !email || !message) {
+    if (!email) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Missing required fields: name, email, message' 
+          error: 'Email is required' 
         },
         { status: 400 }
       );
@@ -37,22 +37,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare data for parallel processing
-    const contactData = {
-      name: name.trim(),
+    const newsletterData = {
+      name: name?.trim() || null,
       email: email.trim().toLowerCase(),
-      business: business?.trim() || null,
-      message: message.trim(),
-      subscribeNewsletter: Boolean(subscribeNewsletter)
+      source: source || 'newsletter_signup'
     };
 
     // Execute email and n8n workflows in parallel
     const [emailResult, n8nResult] = await Promise.allSettled([
-      // Send confirmation email
-      sendContactConfirmation(contactData),
+      // Send welcome email
+      sendNewsletterWelcome(newsletterData),
       // Trigger n8n workflow
-      contactData.subscribeNewsletter 
-        ? triggerContactWithNewsletterWorkflow(contactData)
-        : triggerContactWorkflow(contactData)
+      triggerNewsletterWorkflow(newsletterData)
     ]);
 
     // Check results
@@ -61,43 +57,43 @@ export async function POST(request: NextRequest) {
 
     // Log any errors for debugging
     if (!emailSuccess) {
-      console.error('Email sending failed:', emailResult.status === 'rejected' ? emailResult.reason : (emailResult.value as ServiceResult).error);
+      console.error('Newsletter email sending failed:', emailResult.status === 'rejected' ? emailResult.reason : (emailResult.value as ServiceResult).error);
     }
     if (!n8nSuccess) {
-      console.error('n8n workflow failed:', n8nResult.status === 'rejected' ? n8nResult.reason : (n8nResult.value as ServiceResult).error);
+      console.error('Newsletter n8n workflow failed:', n8nResult.status === 'rejected' ? n8nResult.reason : (n8nResult.value as ServiceResult).error);
     }
 
     // Determine response based on results
     if (emailSuccess && n8nSuccess) {
       return NextResponse.json({
         success: true,
-        message: 'Thank you for your message! We\'ve sent a confirmation email and will get back to you within 1 business day.',
+        message: 'Welcome to our newsletter! Check your email for a welcome message and exclusive content.',
         data: {
           emailSent: true,
           workflowTriggered: true,
-          newsletterSubscribed: contactData.subscribeNewsletter
+          source: newsletterData.source
         }
       });
     } else if (emailSuccess) {
       // Email sent but n8n failed
       return NextResponse.json({
         success: true,
-        message: 'Thank you for your message! We\'ve sent a confirmation email. Our team will review your message and get back to you soon.',
+        message: 'Welcome to our newsletter! Check your email for a welcome message.',
         data: {
           emailSent: true,
           workflowTriggered: false,
-          newsletterSubscribed: contactData.subscribeNewsletter
+          source: newsletterData.source
         }
       });
     } else if (n8nSuccess) {
       // n8n succeeded but email failed
       return NextResponse.json({
         success: true,
-        message: 'Thank you for your message! Our team will review it and get back to you within 1 business day.',
+        message: 'You\'ve been subscribed to our newsletter! We\'ll keep you updated with the latest AI insights.',
         data: {
           emailSent: false,
           workflowTriggered: true,
-          newsletterSubscribed: contactData.subscribeNewsletter
+          source: newsletterData.source
         }
       });
     } else {
@@ -105,13 +101,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'We encountered an issue processing your message. Please try again or contact us directly.' 
+          error: 'We encountered an issue subscribing you to our newsletter. Please try again.' 
         },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('Contact API error:', error);
+    console.error('Newsletter API error:', error);
     return NextResponse.json(
       { 
         success: false, 

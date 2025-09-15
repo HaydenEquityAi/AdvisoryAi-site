@@ -8,6 +8,8 @@ import { Clock, TrendingUp, Zap } from "lucide-react";
 import Link from "next/link";
 import WhyAdvisoryAi from "@/components/WhyAdvisoryAi";
 import IndustrySolutions from "@/components/IndustrySolutions";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import FooterNewsletter from "@/components/FooterNewsletter";
 
 export default function DemoPage() {
   const [isDark, setIsDark] = useState(false);
@@ -102,13 +104,40 @@ export default function DemoPage() {
 
         {/* Industry Solutions */}
         <IndustrySolutions />
+
+        {/* Newsletter Signup */}
+        <section className="section">
+          <div className="container-balanced">
+            <div className="max-w-2xl mx-auto">
+              <NewsletterSignup 
+                title="Ready to Transform Your Business?"
+                description="Join our newsletter for exclusive AI insights, automation strategies, and early access to new tools designed specifically for Tulsa businesses."
+                source="demo_newsletter"
+              />
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer className="border-t bg-muted/30">
         <div className="container-balanced py-12">
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <span className="font-heading font-semibold text-xl">AdvisoryAi</span>
+              </div>
+              <p className="text-muted-foreground text-sm max-w-md">
+                AI & Automation for Tulsa Businesses. We help local companies cut admin hours, streamline operations, and unlock growth with practical AI workflows.
+              </p>
+            </div>
+            <FooterNewsletter />
+          </div>
+          
+          <Separator className="my-6" />
+          
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center">
-              <span className="font-heading font-semibold">AdvisoryAi</span>
+            <div className="text-center text-sm text-muted-foreground">
+              © {new Date().getFullYear()} AdvisoryAi. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Terms</a>
@@ -122,10 +151,6 @@ export default function DemoPage() {
                 {isDark ? "☀️" : "🌙"}
               </Button>
             </div>
-          </div>
-          <Separator className="my-6" />
-          <div className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} AdvisoryAi. All rights reserved.
           </div>
         </div>
       </footer>
