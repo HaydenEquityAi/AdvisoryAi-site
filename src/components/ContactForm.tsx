@@ -1,58 +1,42 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
-interface FormData {
+interface ContactFormData {
   name: string;
   email: string;
-  phone: string;
+  business: string;
   message: string;
+  subscribeNewsletter: boolean;
 }
 
 interface ContactFormProps {
   className?: string;
 }
 
-export default function ContactForm({ className = "" }: ContactFormProps) {
-  const [formData, setFormData] = useState<FormData>({
+export default function ContactForm({ className }: ContactFormProps) {
+  const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
-    phone: "",
+    business: "",
     message: "",
+    subscribeNewsletter: false,
   });
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [errors, setErrors] = useState<Partial<FormData>>({});
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.message.trim()) {
-      newErrors.message = "Message is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setStatus("submitting");
-    setErrors({});
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
+    setErrorMessage("");
 
     try {
       const response = await fetch("/api/contact", {
@@ -65,134 +49,160 @@ export default function ContactForm({ className = "" }: ContactFormProps) {
 
       const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to send message");
+      if (result.success) {
+        setSubmitStatus("success");
+        setFormData({
+          name: "",
+          email: "",
+          business: "",
+          message: "",
+          subscribeNewsletter: false,
+        });
+      } else {
+        setSubmitStatus("error");
+        setErrorMessage(result.error || "Something went wrong. Please try again.");
       }
-
-      setStatus("success");
-      setFormData({ name: "", email: "", phone: "", message: "" });
-    } catch (error) {
-      console.error("Form submission error:", error);
-      setStatus("error");
+    } catch {
+      setSubmitStatus("error");
+      setErrorMessage("Network error. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error when user starts typing
-    if (errors[name as keyof FormData]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      subscribeNewsletter: checked
+    }));
   };
 
   return (
-    <div className={`w-full max-w-2xl ${className}`}>
-      <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-8">Get in Touch</h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid sm:grid-cols-2 gap-6">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="name" className="text-sm font-medium">
-              Name *
+    <Card className={`card ${className || ""}`}>
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium text-foreground">
+                Name *
+              </label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Bobby Raymond"
+                required
+                className="bg-muted/50 border-muted-foreground/20 focus:border-primary focus:ring-primary/20"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-foreground">
+                Email *
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="bobby@brainbodysoul.com"
+                required
+                className="bg-muted/50 border-muted-foreground/20 focus:border-primary focus:ring-primary/20"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="business" className="text-sm font-medium text-foreground">
+              Business
             </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
+            <Input
+              id="business"
+              name="business"
+              value={formData.business}
               onChange={handleChange}
-              className={`border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black transition-colors ${
-                errors.name ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Your full name"
+              placeholder="Brain Body Soul Therapy and Wellness"
+              className="bg-muted/50 border-muted-foreground/20 focus:border-primary focus:ring-primary/20"
             />
-            {errors.name && (
-              <p className="text-sm text-red-600">{errors.name}</p>
-            )}
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="message" className="text-sm font-medium text-foreground">
+              Message *
+            </label>
+            <Textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              placeholder="Tell us about your business and what you want to automate..."
+              rows={4}
+              required
+              className="bg-muted/50 border-muted-foreground/20 focus:border-primary focus:ring-primary/20"
+            />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              Email *
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black transition-colors ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="your@email.com"
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="newsletter"
+              checked={formData.subscribeNewsletter}
+              onCheckedChange={handleCheckboxChange}
+              className="border-muted-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
             />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email}</p>
-            )}
+            <label
+              htmlFor="newsletter"
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              Subscribe to our newsletter for AI insights and automation tips
+            </label>
           </div>
-        </div>
+          
+          <Button 
+            type="submit" 
+            className="w-full btn-primary" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              "Send Message"
+            )}
+          </Button>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="phone" className="text-sm font-medium">
-            Phone
-          </label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleChange}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black transition-colors"
-            placeholder="(555) 123-4567"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="message" className="text-sm font-medium">
-            Message *
-          </label>
-          <textarea
-            id="message"
-            name="message"
-            rows={4}
-            value={formData.message}
-            onChange={handleChange}
-            className={`border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black transition-colors resize-vertical ${
-              errors.message ? "border-red-500" : "border-gray-300"
-            }`}
-            placeholder="Tell us about your business and how we can help..."
-          />
-          {errors.message && (
-            <p className="text-sm text-red-600">{errors.message}</p>
+          {submitStatus === "success" && (
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+                <p className="text-green-800 dark:text-green-200 text-sm">
+                  Thanks! We&apos;ll reach out within 1 business day.
+                </p>
+              </div>
+            </div>
           )}
-        </div>
 
-        <button
-          type="submit"
-          disabled={status === "submitting"}
-          className="w-full sm:w-auto inline-flex items-center justify-center border px-6 py-3 rounded-md bg-black text-white hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-        >
-          {status === "submitting" ? "Sending..." : "Send Message"}
-        </button>
-
-        {status === "success" && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-green-800">
-              Thank you! Your message has been sent. We&apos;ll get back to you within 24 hours.
-            </p>
-          </div>
-        )}
-
-        {status === "error" && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800">
-              Sorry, there was an error sending your message. Please try again or contact us directly.
-            </p>
-          </div>
-        )}
-      </form>
-    </div>
+          {submitStatus === "error" && (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mr-2" />
+                <p className="text-red-800 dark:text-red-200 text-sm">
+                  {errorMessage}
+                </p>
+              </div>
+            </div>
+          )}
+        </form>
+      </CardContent>
+    </Card>
   );
 }

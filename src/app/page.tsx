@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "sonner";
 import { CheckCircle, Clock, TrendingUp, Zap, BarChart3, Workflow, Bot } from "lucide-react";
 import WhyAdvisoryAi from "@/components/WhyAdvisoryAi";
 import IndustrySolutions from "@/components/IndustrySolutions";
+import ContactForm from "@/components/ContactForm";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import FooterNewsletter from "@/components/FooterNewsletter";
 
 export default function Home() {
   const [isDark, setIsDark] = useState(false);
@@ -105,6 +106,19 @@ export default function Home() {
 
         {/* Industry Solutions */}
         <IndustrySolutions />
+
+        {/* Newsletter Signup */}
+        <section className="section">
+          <div className="container-balanced">
+            <div className="max-w-2xl mx-auto">
+              <NewsletterSignup 
+                title="Ready to Transform Your Business?"
+                description="Join our newsletter for exclusive AI insights, automation strategies, and early access to new tools designed specifically for Tulsa businesses."
+                source="homepage_newsletter"
+              />
+            </div>
+          </div>
+        </section>
 
         {/* Services */}
         <section id="services" className="section">
@@ -220,9 +234,23 @@ export default function Home() {
 
       <footer className="border-t bg-muted/30">
         <div className="container-balanced py-12">
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <span className="font-heading font-semibold text-xl">AdvisoryAi</span>
+              </div>
+              <p className="text-muted-foreground text-sm max-w-md">
+                AI & Automation for Tulsa Businesses. We help local companies cut admin hours, streamline operations, and unlock growth with practical AI workflows.
+              </p>
+            </div>
+            <FooterNewsletter />
+          </div>
+          
+          <Separator className="my-6" />
+          
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center">
-              <span className="font-heading font-semibold">AdvisoryAi</span>
+            <div className="text-center text-sm text-muted-foreground">
+              © {new Date().getFullYear()} AdvisoryAi. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Terms</a>
@@ -237,157 +265,12 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <Separator className="my-6" />
-          <div className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} AdvisoryAi. All rights reserved.
-          </div>
         </div>
       </footer>
     </div>
   );
 }
 
-// Contact Form Component
-function ContactForm() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    business: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus("idle");
-
-    try {
-      const webhookUrl = process.env.NEXT_PUBLIC_WEBHOOK_URL;
-      if (!webhookUrl) {
-        throw new Error("Webhook URL not configured");
-      }
-
-      const payload = {
-        ...formData,
-        source: "AdvisoryAi site"
-      };
-
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit");
-      }
-
-      setSubmitStatus("success");
-      setFormData({ name: "", email: "", business: "", message: "" });
-    } catch {
-      setSubmitStatus("error");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  return (
-    <Card className="card">
-      <CardContent className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Name *
-              </label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Bobby Raymond"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email *
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="bobby@brainbodysoul.com"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="business" className="text-sm font-medium">
-              Business
-            </label>
-            <Input
-              id="business"
-              name="business"
-              value={formData.business}
-              onChange={handleChange}
-              placeholder="Brain Body Soul Therapy and Wellness"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="message" className="text-sm font-medium">
-              Message *
-            </label>
-            <Textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              placeholder="Tell us about your business and what you want to automate..."
-              rows={4}
-              required
-            />
-          </div>
-          
-          <Button type="submit" className="w-full btn-primary" disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : "Send Message"}
-          </Button>
-
-          {submitStatus === "success" && (
-            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-green-800 dark:text-green-200 text-sm">
-                Thanks! We&apos;ll reach out within 1 business day.
-              </p>
-            </div>
-          )}
-
-          {submitStatus === "error" && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-red-800 dark:text-red-200 text-sm">
-                Something went wrong. Please try again.
-              </p>
-            </div>
-          )}
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
 
 // Calendar Widget Component
 function CalendarWidget() {
