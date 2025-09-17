@@ -3,7 +3,7 @@
  * Handles communication with n8n workflows via webhooks
  */
 
-const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL;
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_WEBHOOK_URL || 'https://n8n.capitalaiadvisors.com/webhook/advisoryai';
 
 /**
  * Send data to n8n webhook with retry logic
