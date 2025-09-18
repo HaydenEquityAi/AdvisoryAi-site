@@ -1,25 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendContactConfirmation } from '@/lib/services/resend';
 import { triggerContactWorkflow, triggerContactWithNewsletterWorkflow } from '@/lib/services/n8n';
 
-interface ServiceResult {
-  success: boolean;
-  data?: unknown;
-  error?: string;
-}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, business, message, subscribeNewsletter } = body;
+    const { name, email, business, message, subscribeNewsletter } = body || {};
 
     // Validate required fields
     if (!name || !email || !message) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Missing required fields: name, email, message' 
-        },
+        { success: false, error: 'Missing required fields: name, email, message' },
         { status: 400 }
       );
     }
@@ -28,95 +19,46 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid email format' 
-        },
+        { success: false, error: 'Invalid email format' },
         { status: 400 }
       );
     }
 
-    // Prepare data for parallel processing
+    // Prepare payload
     const contactData = {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      business: business?.trim() || null,
-      message: message.trim(),
-      subscribeNewsletter: Boolean(subscribeNewsletter)
+      name: String(name).trim(),
+      email: String(email).trim().toLowerCase(),
+      business: business ? String(business).trim() : '',
+      message: String(message).trim(),
+      subscribeNewsletter: Boolean(subscribeNewsletter),
     };
 
-    // Execute email and n8n workflows in parallel
-    const [emailResult, n8nResult] = await Promise.allSettled([
-      // Send confirmation email
-      sendContactConfirmation(contactData),
-      // Trigger n8n workflow
-      contactData.subscribeNewsletter 
-        ? triggerContactWithNewsletterWorkflow(contactData)
-        : triggerContactWorkflow(contactData)
-    ]);
+    // Trigger n8n workflow
+    const n8nResult = contactData.subscribeNewsletter
+      ? await triggerContactWithNewsletterWorkflow(contactData)
+      : await triggerContactWorkflow(contactData);
 
-    // Check results
-    const emailSuccess = emailResult.status === 'fulfilled' && (emailResult.value as ServiceResult).success;
-    const n8nSuccess = n8nResult.status === 'fulfilled' && (n8nResult.value as ServiceResult).success;
-
-    // Log any errors for debugging
-    if (!emailSuccess) {
-      console.error('Email sending failed:', emailResult.status === 'rejected' ? emailResult.reason : (emailResult.value as ServiceResult).error);
-    }
-    if (!n8nSuccess) {
-      console.error('n8n workflow failed:', n8nResult.status === 'rejected' ? n8nResult.reason : (n8nResult.value as ServiceResult).error);
-    }
-
-    // Determine response based on results
-    if (emailSuccess && n8nSuccess) {
-      return NextResponse.json({
-        success: true,
-        message: 'Thank you for your message! We\'ve sent a confirmation email and will get back to you within 1 business day.',
-        data: {
-          emailSent: true,
-          workflowTriggered: true,
-          newsletterSubscribed: contactData.subscribeNewsletter
-        }
-      });
-    } else if (emailSuccess) {
-      // Email sent but n8n failed
-      return NextResponse.json({
-        success: true,
-        message: 'Thank you for your message! We\'ve sent a confirmation email. Our team will review your message and get back to you soon.',
-        data: {
-          emailSent: true,
-          workflowTriggered: false,
-          newsletterSubscribed: contactData.subscribeNewsletter
-        }
-      });
-    } else if (n8nSuccess) {
-      // n8n succeeded but email failed
-      return NextResponse.json({
-        success: true,
-        message: 'Thank you for your message! Our team will review it and get back to you within 1 business day.',
-        data: {
-          emailSent: false,
-          workflowTriggered: true,
-          newsletterSubscribed: contactData.subscribeNewsletter
-        }
-      });
-    } else {
-      // Both failed
+    if (!n8nResult || !(n8nResult as { success?: boolean; error?: string }).success) {
+      console.error('n8n workflow failed:', (n8nResult as { success?: boolean; error?: string })?.error);
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'We encountered an issue processing your message. Please try again or contact us directly.' 
-        },
-        { status: 500 }
+        { success: false, error: 'We encountered an issue processing your message. Please try again.' },
+        { status: 502 }
       );
     }
+
+    // Success response
+    return NextResponse.json({
+      success: true,
+      message: "Thanks! We've received your message and will get back to you within 1 business day.",
+      data: {
+        workflowTriggered: true,
+        newsletterSubscribed: contactData.subscribeNewsletter,
+      },
+    });
   } catch (error) {
     console.error('Contact API error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Internal server error' 
-      },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

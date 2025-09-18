@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 interface ContactFormData {
@@ -13,7 +12,6 @@ interface ContactFormData {
   email: string;
   business: string;
   message: string;
-  subscribeNewsletter: boolean;
 }
 
 interface ContactFormProps {
@@ -26,7 +24,6 @@ export default function ContactForm({ className }: ContactFormProps) {
     email: "",
     business: "",
     message: "",
-    subscribeNewsletter: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
@@ -56,7 +53,6 @@ export default function ContactForm({ className }: ContactFormProps) {
           email: "",
           business: "",
           message: "",
-          subscribeNewsletter: false,
         });
       } else {
         setSubmitStatus("error");
@@ -77,12 +73,6 @@ export default function ContactForm({ className }: ContactFormProps) {
     }));
   };
 
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      subscribeNewsletter: checked
-    }));
-  };
 
   return (
     <Card className={`card ${className || ""}`}>
@@ -150,20 +140,6 @@ export default function ContactForm({ className }: ContactFormProps) {
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="newsletter"
-              checked={formData.subscribeNewsletter}
-              onCheckedChange={handleCheckboxChange}
-              className="border-muted-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
-            <label
-              htmlFor="newsletter"
-              className="text-sm text-muted-foreground cursor-pointer"
-            >
-              Subscribe to our newsletter for AI insights and automation tips
-            </label>
-          </div>
           
           <Button 
             type="submit" 

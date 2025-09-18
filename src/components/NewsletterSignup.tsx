@@ -136,7 +136,7 @@ export default function NewsletterSignup({
               <div className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
                 <p className="text-green-800 dark:text-green-200 text-sm">
-                  Welcome! Check your email for a confirmation message.
+                  Welcome! You&apos;ve been subscribed to our newsletter.
                 </p>
               </div>
             </div>

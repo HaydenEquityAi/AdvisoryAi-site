@@ -85,7 +85,7 @@ export default function FooterNewsletter({ className = "" }: FooterNewsletterPro
         {submitStatus === "success" && (
           <div className="flex items-center text-green-400 text-sm">
             <CheckCircle className="h-4 w-4 mr-2" />
-            <span>Subscribed! Check your email.</span>
+            <span>Subscribed! Welcome to our newsletter.</span>
           </div>
         )}
 

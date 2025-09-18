@@ -66,7 +66,7 @@ async function sendToWebhook(data, retries = 2) {
  * @param {boolean} params.subscribeNewsletter - Whether user opted into newsletter
  * @returns {Promise<Object>} Result object
  */
-export async function triggerContactWorkflow({ name, email, message, business, subscribeNewsletter }) {
+export async function triggerContactWorkflow({ name, email, message, business = null, subscribeNewsletter }) {
   const data = {
     type: 'contact_form',
     source: 'advisoryai_website',
@@ -116,7 +116,7 @@ export async function triggerNewsletterWorkflow({ name, email, source }) {
  * @param {string} params.business - Business name (optional)
  * @returns {Promise<Object>} Result object
  */
-export async function triggerContactWithNewsletterWorkflow({ name, email, message, business }) {
+export async function triggerContactWithNewsletterWorkflow({ name, email, message, business = null }) {
   const data = {
     type: 'contact_with_newsletter',
     source: 'advisoryai_website',

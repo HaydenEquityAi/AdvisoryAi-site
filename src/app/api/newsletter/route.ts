@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendNewsletterWelcome } from '@/lib/services/resend';
 import { triggerNewsletterWorkflow } from '@/lib/services/n8n';
 
-interface ServiceResult {
-  success: boolean;
-  data?: unknown;
-  error?: string;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,68 +30,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare data for parallel processing
+    // Prepare data for n8n workflow
     const newsletterData = {
       name: name?.trim() || null,
       email: email.trim().toLowerCase(),
       source: source || 'newsletter_signup'
     };
 
-    // Execute email and n8n workflows in parallel
-    const [emailResult, n8nResult] = await Promise.allSettled([
-      // Send welcome email
-      sendNewsletterWelcome(newsletterData),
-      // Trigger n8n workflow
-      triggerNewsletterWorkflow(newsletterData)
-    ]);
+    // Trigger n8n workflow
+    const n8nResult = await triggerNewsletterWorkflow(newsletterData);
 
-    // Check results
-    const emailSuccess = emailResult.status === 'fulfilled' && (emailResult.value as ServiceResult).success;
-    const n8nSuccess = n8nResult.status === 'fulfilled' && (n8nResult.value as ServiceResult).success;
-
-    // Log any errors for debugging
-    if (!emailSuccess) {
-      console.error('Newsletter email sending failed:', emailResult.status === 'rejected' ? emailResult.reason : (emailResult.value as ServiceResult).error);
-    }
-    if (!n8nSuccess) {
-      console.error('Newsletter n8n workflow failed:', n8nResult.status === 'rejected' ? n8nResult.reason : (n8nResult.value as ServiceResult).error);
-    }
-
-    // Determine response based on results
-    if (emailSuccess && n8nSuccess) {
-      return NextResponse.json({
-        success: true,
-        message: 'Welcome to our newsletter! Check your email for a welcome message and exclusive content.',
-        data: {
-          emailSent: true,
-          workflowTriggered: true,
-          source: newsletterData.source
-        }
-      });
-    } else if (emailSuccess) {
-      // Email sent but n8n failed
-      return NextResponse.json({
-        success: true,
-        message: 'Welcome to our newsletter! Check your email for a welcome message.',
-        data: {
-          emailSent: true,
-          workflowTriggered: false,
-          source: newsletterData.source
-        }
-      });
-    } else if (n8nSuccess) {
-      // n8n succeeded but email failed
-      return NextResponse.json({
-        success: true,
-        message: 'You\'ve been subscribed to our newsletter! We\'ll keep you updated with the latest AI insights.',
-        data: {
-          emailSent: false,
-          workflowTriggered: true,
-          source: newsletterData.source
-        }
-      });
-    } else {
-      // Both failed
+    if (!n8nResult || !(n8nResult as { success?: boolean; error?: string }).success) {
+      console.error('Newsletter n8n workflow failed:', (n8nResult as { success?: boolean; error?: string })?.error);
       return NextResponse.json(
         { 
           success: false, 
@@ -106,6 +50,16 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Success response
+    return NextResponse.json({
+      success: true,
+      message: 'Welcome to our newsletter! We\'ll keep you updated with the latest AI insights.',
+      data: {
+        workflowTriggered: true,
+        source: newsletterData.source
+      }
+    });
   } catch (error) {
     console.error('Newsletter API error:', error);
     return NextResponse.json(
