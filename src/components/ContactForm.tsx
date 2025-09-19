@@ -88,7 +88,7 @@ export default function ContactForm({ className }: ContactFormProps) {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Bobby Raymond"
+                placeholder=""
                 required
                 className="bg-muted/50 border-muted-foreground/20 focus:border-primary focus:ring-primary/20"
               />
@@ -103,7 +103,7 @@ export default function ContactForm({ className }: ContactFormProps) {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="bobby@brainbodysoul.com"
+                placeholder=""
                 required
                 className="bg-muted/50 border-muted-foreground/20 focus:border-primary focus:ring-primary/20"
               />
@@ -119,7 +119,7 @@ export default function ContactForm({ className }: ContactFormProps) {
               name="business"
               value={formData.business}
               onChange={handleChange}
-              placeholder="Brain Body Soul Therapy and Wellness"
+              placeholder=""
               className="bg-muted/50 border-muted-foreground/20 focus:border-primary focus:ring-primary/20"
             />
           </div>
